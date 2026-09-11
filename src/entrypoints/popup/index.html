@@ -1,34 +1,9 @@
-<!doctype html>
-<html>
-  <head>
-    <meta charset="UTF-8" />
-    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-
-    <title>Import references into JabRef</title>
-    <meta
-      name="manifest.default_icon"
-      content='{"16":"JabRef-icon-16.png","48":"JabRef-icon-48.png","128":"JabRef-icon-128.png"}'
-    />
-    <meta name="manifest.type" content="page_action" />
-  </head>
-  <body>
-    <h3 id="status">Searching for bibliographic data...</h3>
-    <ul id="itemList">
-      <!--
-      <li>test 1</li>
-      <li>test 2
-        <ul class="attachmentList">
-          <li> attachment 1 </li>
-          <li class="inprogress"> attachment 2  </li>
-        </ul>
-      </li>
-      <li>test 3: a very vary veryyyyyyyyyy long title. Really verrryyyyyyyy long. You don't believe me?????</li>
-      -->
-    </ul>
-    <details id="log-box">
-      <summary>Logs</summary>
-      <div id="log" class="log-box"></div>
-    </details>
-    <script type="module" src="./main.js"></script>
-  </body>
-</html>
+<!doctype html><html lang="ko"><head><meta charset="utf-8"><title>Paperbox</title></head>
+<body><h1>Paperbox</h1><button id="options">접속 설정</button>
+<label>추출한 논문<select id="papers"></select></label><p id="identity"></p>
+<label>프로젝트<select id="project"><option value="">Inbox</option></select></label>
+<button id="save" disabled>이 논문 보관</button>
+<label>PDF 직접 업로드<input type="file" id="files" accept="application/pdf" multiple></label>
+<button id="upload">선택한 PDF 보관</button>
+<div id="choice" hidden><p>기존 본문이 있습니다. 업로드한 PDF의 용도를 선택하세요.</p><button id="replace">본문 교체</button><button id="supplement">보충자료로 보관</button></div>
+<p id="status" role="status">논문 정보를 읽는 중…</p><script type="module" src="./main.js"></script></body></html>

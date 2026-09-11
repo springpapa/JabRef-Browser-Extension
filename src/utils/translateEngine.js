@@ -11,10 +11,12 @@ const EXPORT_TRANSLATORS = {
 
 export async function createTranslateEngine(location) {
   return {
-    detect: async () => {
+    detect: async (doc) => {
       // Upstream: https://github.com/zotero/zotero-connectors/blob/ea060a0aa2fea1267049b5fc880e53aa6c915eeb/src/common/inject/pageSaving.js#L113-L114
       const translate = await _initTranslate();
-      return await TranslateWeb.detect({ translate, location });
+      if (doc) await translate.setDocument(doc);
+      const detected = await TranslateWeb.detect({ translate, location });
+      return detected.map(t => ({ ...TranslatorsManifest.find(info => info.translatorID === t.translatorID), itemType: t.itemType }));
     },
     translate: async (doc, translators) => {
       // Upstream: https://github.com/zotero/zotero-connectors/blob/ea060a0aa2fea1267049b5fc880e53aa6c915eeb/src/common/inject/pageSaving.js#L287-L291
@@ -138,7 +140,7 @@ class TranslatorProvider {
     const matches = [];
     for (const translator of await this.getAllForType("web")) {
       const target = translator?.target;
-      if (!target && !translator.runInBrowser) {
+      if (!target && translator.runMode !== Zotero.Translator.RUN_MODE_IN_BROWSER) {
         // Don't attempt to use generic translators that can't be run in this browser
         continue;
       }
@@ -204,3 +206,6 @@ async function _initTranslate(itemType = null) {
   }
   return translate;
 }
+
+// Paperbox receives translated items; the browser does not write a Zotero library.
+Zotero.Translate.ItemSaver.prototype.saveItems = async function(items) { return items; };

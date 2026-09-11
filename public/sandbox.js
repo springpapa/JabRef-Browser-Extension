@@ -11,7 +11,10 @@ export let text;
 export let attr;
 export let DOMParser;
 
+let currentSandbox;
 export function setSandbox(sandbox) {
+  const previous = currentSandbox;
+  currentSandbox = sandbox;
   ZU = sandbox.ZU;
   Zotero = sandbox.Zotero;
   Z = sandbox.Zotero;
@@ -20,4 +23,5 @@ export function setSandbox(sandbox) {
   text = sandbox.text;
   attr = sandbox.attr;
   DOMParser = sandbox.DOMParser || DOMParser;
+  return previous;
 }

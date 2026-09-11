@@ -23,3 +23,11 @@ if (browser.webRequest) {
 }
 
 Zotero.Date.init(dateFormats);
+
+import "./rdf/init.js";
+import "./rdf/uri.js";
+import "./rdf/term.js";
+import "./rdf/identity.js";
+import "./rdf/n3parser.js";
+import "./rdf/rdfparser.js";
+import "./rdf/serialize.js";

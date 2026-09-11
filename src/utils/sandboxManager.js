@@ -1,9 +1,10 @@
 let sharedSandboxModulePromise;
+let sharedSandboxModule;
 
 function getSharedSandboxModule() {
   if (!sharedSandboxModulePromise) {
     const url = browser.runtime.getURL("/sandbox.js");
-    sharedSandboxModulePromise = import(url);
+    sharedSandboxModulePromise = import(url).then(module => { sharedSandboxModule = module; return module; });
   }
   return sharedSandboxModulePromise;
 }
@@ -47,7 +48,15 @@ class SandboxManager {
           const callArgs = passTranslateAsFirstArgument
             ? [passTranslateAsFirstArgument, ...args]
             : [...args];
-          return fn.apply(object, callArgs);
+          const result = fn.apply(object, callArgs);
+          if (key === "loadTranslator") {
+            for (const name of ["setHandler", "getTranslatorObject"]) {
+              const original = result[name];
+              result[name] = (...values) => original.apply(result, values.map(value =>
+                typeof value === "function" ? (...params) => this._invoke(value, params) : value));
+            }
+          }
+          return result;
         };
 
         this.importObject(
@@ -59,6 +68,16 @@ class SandboxManager {
         attachTo[key] = object[key];
       }
     }
+  }
+
+  _invoke(fn, args, receiver = this.sandbox, awaitResult = true) {
+    const previous = sharedSandboxModule.setSandbox(this.sandbox);
+    const restore = () => { if (previous) sharedSandboxModule.setSandbox(previous); };
+    try {
+      const result = fn.apply(receiver, args);
+      if (awaitResult && result && typeof result.finally === "function") return result.finally(restore);
+      restore(); return result;
+    } catch (error) { restore(); throw error; }
   }
 
   _resolvePath(path) {
@@ -103,15 +122,17 @@ class SandboxManager {
       if (exported && Object.prototype.hasOwnProperty.call(exported, fn)) {
         this.sandbox[fn] = (...args) => {
           // Prepend sandbox properties
-          setSandbox(this.sandbox);
-          return exported[fn].apply(this.sandbox, args);
+          return this._invoke(exported[fn], args);
         };
       }
     }
 
     this.sandbox.ZOTERO_TRANSLATOR_INFO = exported.ZOTERO_TRANSLATOR_INFO;
 
-    this.sandbox.exports = exported.exports;
+    this.sandbox.exports = exported.exports && new Proxy(exported.exports, {
+      get: (target, key) => typeof target[key] === "function"
+        ? (...args) => this._invoke(target[key], args, target, false) : target[key],
+    });
 
     return exported;
   }

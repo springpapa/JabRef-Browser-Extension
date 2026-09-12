@@ -6,7 +6,7 @@ const labels = { ready: "검색 준비됨", indexing: "검색 준비 중", retry
 function show(text) { $("status").textContent = text; }
 function identity() { selectedPaperId = null; const p = items[$("papers").value]; $("identity").textContent = p ? (p.DOI || p.url || "서지 확인 필요") : ""; }
 async function register(body) {
-  if ($("project").value) body.project_id = $("project").value;
+  if (!body.project_ids) body.project_ids = [...$("project").selectedOptions].map(o => o.value);
   try {
     const paper = await api("/api/tools/paper_add", body);
     selectedPaperId = paper.paper_id;
